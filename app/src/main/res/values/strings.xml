@@ -1,0 +1,83 @@
+<resources>
+    <string name="app_name">Iain_Cotter_S1507974</string>
+    
+    <string-array name="sortTypes">
+        <item>Date</item>
+        <item>Time</item>
+        <item>Location</item>
+        <item>Category</item>
+        <item>Magnitude</item>
+        <item>Depth</item>
+        <item>North</item>
+        <item>East</item>
+    </string-array>
+
+    <string-array name="searchTypes">
+        <item>Date</item>
+        <item>Location</item>
+        <item>Day</item>
+    </string-array>
+
+    <string-array name="Dates">
+        <item>Date...</item>
+        <item>01</item>
+        <item>02</item>
+        <item>03</item>
+        <item>04</item>
+        <item>05</item>
+        <item>06</item>
+        <item>07</item>
+        <item>08</item>
+        <item>09</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+        <item>13</item>
+        <item>14</item>
+        <item>15</item>
+        <item>16</item>
+        <item>17</item>
+        <item>18</item>
+        <item>19</item>
+        <item>20</item>
+        <item>21</item>
+        <item>22</item>
+        <item>23</item>
+        <item>24</item>
+        <item>25</item>
+        <item>26</item>
+        <item>27</item>
+        <item>28</item>
+        <item>29</item>
+        <item>30</item>
+        <item>31</item>
+    </string-array>
+
+    <string-array name="Months">
+        <item>Month...</item>
+        <item>Jan</item>
+        <item>Feb</item>
+        <item>Mar</item>
+        <item>Apr</item>
+        <item>May</item>
+        <item>Jun</item>
+        <item>Jul</item>
+        <item>Aug</item>
+        <item>Sep</item>
+        <item>Oct</item>
+        <item>Nov</item>
+        <item>Dec</item>
+    </string-array>
+
+    <string-array name="Days">
+        <item>Days...</item>
+        <item>Mon</item>
+        <item>Tue</item>
+        <item>Wed</item>
+        <item>Thu</item>
+        <item>Fri</item>
+        <item>Sat</item>
+        <item>Sun</item>
+    </string-array>
+
+</resources>
