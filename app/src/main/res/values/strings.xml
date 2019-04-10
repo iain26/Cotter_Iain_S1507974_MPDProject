@@ -8,8 +8,8 @@
         <item>Category</item>
         <item>Magnitude</item>
         <item>Depth</item>
-        <item>North</item>
-        <item>East</item>
+        <item>Northern</item>
+        <item>Eastern</item>
     </string-array>
 
     <string-array name="searchTypes">

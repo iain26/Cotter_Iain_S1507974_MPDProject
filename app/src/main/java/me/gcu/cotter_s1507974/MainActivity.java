@@ -4,15 +4,16 @@
 // Programme of Study   Computer Games (Software Development)
 //
 
-// Update the package name to include your Student Identifier
 package me.gcu.cotter_s1507974;
 
+import android.content.Context;
 import android.content.res.Configuration;
-import android.os.Handler;
-import android.os.Looper;
+import android.os.Build;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.InputMethodManager;
@@ -28,110 +29,117 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Timer;
-import java.util.TimerTask;
 
-public class MainActivity extends AppCompatActivity implements OnClickListener {
+public class MainActivity extends AppCompatActivity implements OnClickListener, Task.Callbacks {
+
+    // UI Elements
+    private LinearLayout day_search;
+    private LinearLayout date_search;
+    private LinearLayout info;
+    private Spinner sort_type;
+    private Spinner day_selection;
+    private Spinner date_selection;
+    private Spinner month_selection;
+    private Spinner year_selection;
+    private Spinner search_by;
+    private Switch asc_option;
+    private EditText location_search;
+    private TextView info_text;
     private ListAdapter adapter;
     private ListView display;
-
-    private LinearLayout info;
-    private TextView info_text;
+    private ArrayAdapter<CharSequence> spinnerAdapter;
+    private String year[] = {"Year...", "", ""};
+    private Button search_button;
+    private Button clear_button;
     private ImageButton quit_info;
 
-    private Spinner sort_type;
+    // fragment to maintain list when orientation changes
+    private Task task;
+    private String taskTag = "task_tag";
 
-    enum typesToSort {DATE, TIME, LOCATION, CATEGORY, MAGNITUDE, DEPTH, NORTH, EAST}
+    // call from task class
+    @Override
+    public void onProgressUpdate(String[] update) {
+        setDisplay(update);
+    }
 
-    typesToSort sort = typesToSort.DATE;
-    private Switch asc_option;
-    private boolean asc = false;
-
-    Spinner search_by;
-
-    enum searchType {DATE, LOCATION, DAY}
-
-    searchType currentSearch = searchType.DATE;
-
-    LinearLayout day_search;
-    Spinner day_selection;
-
-    LinearLayout date_search;
-    Spinner date_selection;
-    Spinner month_selection;
-    String year[] = {"Year...", "", ""};
-    Spinner year_selection;
-    private EditText location_search;
-    private Button search_button;
-    private boolean searching = false;
-
-    private Button update_button;
-
-    private ArrayList<ListData> originalList = new ArrayList<ListData>();
-    private ArrayList<ListData> displayList = new ArrayList<ListData>();
-    private ArrayList<ListData> inclusionList = new ArrayList<ListData>();
-
-    private Parser parseObject;
-    private String result;
-    private String url1 = "";
-    private String urlSource = "http://quakes.bgs.ac.uk/feeds/MhSeismology.xml";
-
-    Timer timer = new Timer();
-
-    int timeInSeconds = 10;
-
+    // soft keyboard pops up when text edited rehide it
     public void hideKeyboard(MainActivity activity) {
         InputMethodManager inputMethodManager = (InputMethodManager) activity.getSystemService(MainActivity.INPUT_METHOD_SERVICE);
         inputMethodManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
     }
 
+    // set UI elements from xml file
     public void SetUIElements() {
-
+        // sets the xml components to activity components
         sort_type = (Spinner) findViewById(R.id.sort_type);
-        ArrayAdapter<CharSequence> sortAdap = ArrayAdapter.createFromResource(this, R.array.sortTypes, android.R.layout.simple_spinner_item);
-        sortAdap.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        sort_type.setAdapter(sortAdap);
+        asc_option = (Switch) findViewById(R.id.asc_option);
+
+        search_by = (Spinner) findViewById(R.id.search_by);
+        clear_button = (Button) findViewById(R.id.clear_button);
+
+        date_search = (LinearLayout) findViewById(R.id.date_search);
+        date_selection = (Spinner) findViewById(R.id.date_selection);
+        month_selection = (Spinner) findViewById(R.id.month_selection);
+        year_selection = (Spinner) findViewById(R.id.year_selection);
+
+        day_search = (LinearLayout) findViewById(R.id.day_search);
+        day_selection = (Spinner) findViewById(R.id.day_selection);
+
+        location_search = (EditText) findViewById(R.id.location_search);
+        search_button = (Button) findViewById(R.id.search_button);
+
+        info = (LinearLayout) findViewById(R.id.info);
+        info_text = (TextView) findViewById(R.id.info_text);
+        quit_info = (ImageButton) findViewById(R.id.quit_info);
+
+        display = (ListView) findViewById(R.id.display);
+
+        // set event listeners on activity components
+        search_button.setOnClickListener(this);
+        clear_button.setOnClickListener(this);
+        quit_info.setOnClickListener(this);
+        asc_option.setOnClickListener(this);
+
+        // set switch to users previous setting
+        asc_option.setChecked(task.asc);
+
+        // spinner string values are loaded from the strings.xml in value folder
+        // Set spinner and events for sort that update tasks sort type and updates list view component
+        spinnerAdapter = ArrayAdapter.createFromResource(this, R.array.sortTypes, android.R.layout.simple_spinner_item);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        sort_type.setAdapter(spinnerAdapter);
         sort_type.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 switch (sort_type.getSelectedItem().toString()) {
                     case "Date":
-                        sort = typesToSort.DATE;
+                        task.sort = Task.typesToSort.DATE;
                         break;
                     case "Time":
-                        sort = typesToSort.TIME;
+                        task.sort = Task.typesToSort.TIME;
                         break;
                     case "Location":
-                        sort = typesToSort.LOCATION;
+                        task.sort = Task.typesToSort.LOCATION;
                         break;
                     case "Category":
-                        sort = typesToSort.CATEGORY;
+                        task.sort = Task.typesToSort.CATEGORY;
                         break;
                     case "Magnitude":
-                        sort = typesToSort.MAGNITUDE;
+                        task.sort = Task.typesToSort.MAGNITUDE;
                         break;
                     case "Depth":
-                        sort = typesToSort.DEPTH;
+                        task.sort = Task.typesToSort.DEPTH;
                         break;
-                    case "North":
-                        sort = typesToSort.NORTH;
+                    case "Northern":
+                        task.sort = Task.typesToSort.NORTHERN;
                         break;
-                    case "East":
-                        sort = typesToSort.EAST;
+                    case "Eastern":
+                        task.sort = Task.typesToSort.EASTERN;
                         break;
                 }
-//                OrderList();
+                task.OrderList();
             }
 
             @Override
@@ -140,14 +148,11 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             }
         });
 
-        asc_option = (Switch) findViewById(R.id.asc_option);
-        asc_option.setChecked(asc);
-        asc_option.setOnClickListener(this);
-
-        search_by = (Spinner) findViewById(R.id.search_by);
-        ArrayAdapter<CharSequence> searchAdap = ArrayAdapter.createFromResource(this, R.array.searchTypes, android.R.layout.simple_spinner_item);
-        searchAdap.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        search_by.setAdapter(searchAdap);
+        // Set spinner and events for search that update tasks search type
+        // if type changed clear previous search update list view component
+        spinnerAdapter = ArrayAdapter.createFromResource(this, R.array.searchTypes, android.R.layout.simple_spinner_item);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        search_by.setAdapter(spinnerAdapter);
         search_by.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -159,16 +164,24 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                 switch (search_by.getSelectedItem().toString()) {
                     case "Date":
                         date_search.setVisibility(View.VISIBLE);
-                        currentSearch = searchType.DATE;
+                        task.currentSearch = Task.searchType.DATE;
                         break;
                     case "Location":
                         location_search.setVisibility(View.VISIBLE);
-                        currentSearch = searchType.LOCATION;
+                        task.currentSearch = Task.searchType.LOCATION;
                         break;
                     case "Day":
                         day_search.setVisibility(View.VISIBLE);
-                        currentSearch = searchType.DAY;
+                        task.currentSearch = Task.searchType.DAY;
                         break;
+                }
+
+                if(task.lastSearch != task.currentSearch){
+                    task.lastSearch = task.currentSearch;
+                    task.inclusionList.clear();
+                    task.searching = false;
+
+                    task.OrderList();
                 }
             }
 
@@ -178,278 +191,147 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             }
         });
 
-        date_selection = (Spinner) findViewById(R.id.date_selection);
-        ArrayAdapter<CharSequence> dateAdap = ArrayAdapter.createFromResource(this, R.array.Dates, android.R.layout.simple_spinner_item);
-        dateAdap.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        date_selection.setAdapter(dateAdap);
-
-        month_selection = (Spinner) findViewById(R.id.month_selection);
-        ArrayAdapter<CharSequence> monthAdap = ArrayAdapter.createFromResource(this, R.array.Months, android.R.layout.simple_spinner_item);
-        monthAdap.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        month_selection.setAdapter(monthAdap);
-
-        date_search = (LinearLayout) findViewById(R.id.date_search);
+        // sets date spinners for date, month and year
+        spinnerAdapter = ArrayAdapter.createFromResource(this, R.array.Dates, android.R.layout.simple_spinner_item);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        date_selection.setAdapter(spinnerAdapter);
+        spinnerAdapter = ArrayAdapter.createFromResource(this, R.array.Months, android.R.layout.simple_spinner_item);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        month_selection.setAdapter(spinnerAdapter);
         year[1] = "" + (Calendar.getInstance().get(Calendar.YEAR) - 1);
         year[2] = "" + Calendar.getInstance().get(Calendar.YEAR);
-        year_selection = (Spinner) findViewById(R.id.year_selection);
         ArrayAdapter<String> yearAdap = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, year);
         yearAdap.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         year_selection.setAdapter(yearAdap);
 
-        day_search = (LinearLayout) findViewById(R.id.day_search);
-        day_selection = (Spinner) findViewById(R.id.day_selection);
-        ArrayAdapter<CharSequence> dayAdap = ArrayAdapter.createFromResource(this, R.array.Days, android.R.layout.simple_spinner_item);
-        dayAdap.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        day_selection.setAdapter(dayAdap);
+        // sets spinner for day
+        spinnerAdapter = ArrayAdapter.createFromResource(this, R.array.Days, android.R.layout.simple_spinner_item);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        day_selection.setAdapter(spinnerAdapter);
 
-        location_search = (EditText) findViewById(R.id.location_search);
-        search_button = (Button) findViewById(R.id.search_button);
-        search_button.setOnClickListener(this);
-
-
-        update_button = (Button) findViewById(R.id.update_button);
-        update_button.setOnClickListener(this);
-
-        info = (LinearLayout) findViewById(R.id.info);
-        info_text = (TextView) findViewById(R.id.info_text);
-        quit_info = (ImageButton) findViewById(R.id.quit_info);
-        quit_info.setOnClickListener(this);
-
-        display = (ListView) findViewById(R.id.display);
+        // sets event when iten in list selected
+        // only able to select if the list to display exists
         display.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (displayList.size() > 0) {
+                if (task.displayList.size() > 0) {
+                    // vibrates on item select
+                    Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        vibrator.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
+                    }
+                    else{
+                        vibrator.vibrate(50);
+                    }
+
+                    // display additional information based on item selected
                     info.setVisibility(View.VISIBLE);
-                    info_text.setText(displayList.get(position).infoFormat);
+                    info_text.setText(task.displayList.get(position).infoFormat);
                 }
             }
         });
     }
 
+    // when activity is created on create is called
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-//        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+        // change to orientation will destroy current activity
+        // depending on the orientation currently determine which xml layout to load
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
             setContentView(R.layout.activity_main_por);
-//        } else {
-//            setContentView(R.layout.activity_main_land);
-//        }
-
-        SetUIElements();
-
-        if(Looper.getMainLooper().getThread() == Thread.currentThread()) {
-            Log.e("Thread", "Main Thread" );
-        }else{
-            Log.e("Thread", "Not Main Thread" );
+        } else {
+            setContentView(R.layout.activity_main_land);
         }
-//        timer.schedule(new ReadXML(urlSource), 0, timeInSeconds * 1000);
-        timer.schedule(new ReadXML(urlSource), 0);
+
+        // fragment that runs throughout seperate instances of the activity
+        // on first loadup create the fragment
+        FragmentManager manager = getSupportFragmentManager();
+        task = (Task)manager.findFragmentByTag(taskTag);
+        if(task == null){
+            task = new Task();
+            manager.beginTransaction().add(task, taskTag).commit();
+        }
+
+        // set activity components to xml components
+        SetUIElements();
     }
 
+    // when buttons or switch is pressed
     public void onClick(View aview) {
+        hideKeyboard(this);
+
+        Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
+        }
+        else{
+            vibrator.vibrate(50);
+        }
+
+        //check which button was pressed
         switch (aview.getId()) {
+            // search was pressed
             case R.id.search_button:
-                hideKeyboard(this);
-                String input = "";
-                switch (currentSearch) {
+                String searchInput = "";
+                // depending on search condition in fragment then read the values of spinners or edit text to get string
+                switch (task.currentSearch) {
                     case DATE:
                         String date = date_selection.getSelectedItem().toString();
-                        date = date.matches("Date") ? "" : date_selection.getSelectedItem().toString();
-                        String month = month_selection.getSelectedItem().toString();
-                        month = month.matches("Month") ? "" : month_selection.getSelectedItem().toString();
-                        String year = year_selection.getSelectedItem().toString() == "Year" ? "" : year_selection.getSelectedItem().toString();
+                        date = date.contains("Date") ? "" : date_selection.getSelectedItem().toString();
 
-                        input = date + " " + month + " " + year;
-                        input = input.trim();
+                        String month = month_selection.getSelectedItem().toString();
+                        month = month.contains("Month") ? "" : month_selection.getSelectedItem().toString();
+
+                        String year = year_selection.getSelectedItem().toString().contains("Year")  ? "" : year_selection.getSelectedItem().toString();
+
+                        searchInput = date + " " + month + " " + year;
+                        searchInput = searchInput.trim();
                         break;
                     case LOCATION:
-
-                        input = location_search.getText().toString().trim();
+                        searchInput = location_search.getText().toString().trim();
                         break;
                     case DAY:
                         String day = day_selection.getSelectedItem().toString();
-                        day = day.matches("Days") ? "" : day_selection.getSelectedItem().toString();
+                        day = day.contains("Days") ? "" : day_selection.getSelectedItem().toString();
 
-                        input = day;
+                        searchInput = day;
                         break;
                 }
-                inclusionList.clear();
-                if (!input.matches("")) {
-                    SearchList(input);
+                // reset search list and check that input is not nothing then run search function in fragment
+                task.inclusionList.clear();
+                if (!searchInput.matches("")) {
+                    task.SearchList(searchInput);
                 } else {
-                    searching = false;
+                    task.searching = false;
                 }
-                OrderList();
+                task.OrderList();
                 break;
+            // switch changes boolean that changes the order of list
             case R.id.asc_option:
-                asc = !asc;
-                OrderList();
+                task.asc = !task.asc;
+                task.OrderList();
                 break;
+            // when cross pressed on information screen hide the information screen
             case R.id.quit_info:
                 info.setVisibility(View.GONE);
                 break;
-            case R.id.update_button:
-                update_button.setVisibility(View.GONE);
-//                timer.schedule(new TimeToUpdateTask(), 0, timeInSeconds * 1000);
+            // resets all spinner and edit text for search and clears search list
+            case R.id.clear_button:
+                date_selection.setSelection(0);
+                month_selection.setSelection(0);
+                year_selection.setSelection(0);
+                location_search.setText("");
+                day_selection.setSelection(0);
+                task.inclusionList.clear();
+                task.searching = false;
+                task.OrderList();
                 break;
         }
     }
 
-    public void SearchList(String input) {
-
-        searching = true;
-
-        for (ListData data : originalList) {
-            boolean searchItem = true;
-            String[] sInput = input.split(" ");
-
-            for (String seperateChunks : sInput) {
-                seperateChunks.trim();
-                String sCheck = "";
-                if (!seperateChunks.matches("")) {
-                    switch (currentSearch) {
-                        case DATE:
-                            if (seperateChunks.length() < 3) {
-                                seperateChunks += " ";
-                            }
-                            sCheck = data.date.substring(6);
-                            if (!sCheck.contains(seperateChunks)) {
-                                searchItem = false;
-                            }
-                            break;
-                        case LOCATION:
-                            if (!data.location.contains(seperateChunks.toUpperCase())) {
-                                searchItem = false;
-                            }
-                            break;
-                        case DAY:
-                            sCheck = data.date.substring(0, 5);
-                            sCheck.trim();
-                            if (!sCheck.contains(seperateChunks)) {
-                                searchItem = false;
-                            }
-                            break;
-                    }
-                }
-            }
-
-            if (searchItem == true) {
-                if (!inclusionList.contains(data)) {
-                    inclusionList.add(data);
-                }
-            }
-        }
-    }
-
-    public void OrderList() {
-
-        displayList.clear();
-
-        if (searching == false) {
-            for (ListData data : originalList) {
-                displayList.add(data);
-            }
-        } else {
-            for (ListData data : originalList) {
-                if (inclusionList.contains(data)) {
-                    displayList.add(data);
-                }
-            }
-        }
-
-        switch (sort) {
-            case TIME:
-                Collections.sort(displayList, new Comparator<ListData>() {
-                    @Override
-                    public int compare(ListData o1, ListData o2) {
-                        return o1.time.compareTo(o2.time);
-                    }
-                });
-                break;
-            case LOCATION:
-                Collections.sort(displayList, new Comparator<ListData>() {
-                    @Override
-                    public int compare(ListData o1, ListData o2) {
-                        return o1.location.compareTo(o2.location);
-                    }
-                });
-                break;
-            case CATEGORY:
-                Collections.sort(displayList, new Comparator<ListData>() {
-                    @Override
-                    public int compare(ListData o1, ListData o2) {
-                        return o1.category.compareTo(o2.category);
-                    }
-                });
-                break;
-            case MAGNITUDE:
-                Collections.sort(displayList, new Comparator<ListData>() {
-                    @Override
-                    public int compare(ListData o1, ListData o2) {
-                        return Float.compare(o1.magnitude, o2.magnitude);
-                    }
-                });
-                break;
-            case DEPTH:
-                Collections.sort(displayList, new Comparator<ListData>() {
-                    @Override
-                    public int compare(ListData o1, ListData o2) {
-                        return Float.compare(o1.depth, o2.depth);
-                    }
-                });
-                break;
-            case NORTH:
-                Collections.sort(displayList, new Comparator<ListData>() {
-                    @Override
-                    public int compare(ListData o1, ListData o2) {
-                        return Float.compare(o2.coordinates[0], o1.coordinates[0]);
-                    }
-                });
-                break;
-            case EAST:
-                Collections.sort(displayList, new Comparator<ListData>() {
-                    @Override
-                    public int compare(ListData o1, ListData o2) {
-                        return Float.compare(o2.coordinates[1], o1.coordinates[1]);
-                    }
-                });
-                break;
-        }
-
-        if (asc == true) {
-            Collections.reverse(displayList);
-        }
-
-        ArrayList<String> temp = new ArrayList<String>();
-
-        for (ListData displayData : displayList) {
-            temp.add(displayData.textFormat);
-        }
-
-        if (searching == true) {
-            if (temp.size() == 0) {
-                temp.add("The Search Produced No Results...");
-            }
-        }
-
-        String[] arr = temp.toArray(new String[temp.size()]);
-        setDisplay(arr);
-    }
-
-    public void AddToList(ArrayList<String> list) {
-
-        for(String listItem: list){
-            ListData temp = new ListData(listItem);
-            originalList.add(temp);
-        }
-
-        Log.e("Timer", "List was Updated!");
-
-        OrderList();
-    }
-
+    // Updates the List View component
     public void setDisplay(String[] newDisplay) {
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_selectable_list_item, newDisplay);
         MainActivity.this.runOnUiThread(new Runnable() {
@@ -458,86 +340,5 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             }
         });
     }
-
-    public class ListData{
-        String location = "";
-        String date = "";
-        String time = "";
-        String category = "";
-        float magnitude = 0f;
-        float depth = 0f;
-        float [] coordinates = {0f, 0f};
-        String textFormat;
-        String infoFormat;
-
-        public ListData(String text){
-            String[] segments = text.split(";");
-
-            location = segments[2].substring(10, segments[2].length());
-            date = segments[6].substring(0, segments[6].length() -9);
-            time = segments[6].substring(segments[6].length() -9);
-            category = segments[7];
-            magnitude = Float.parseFloat(segments[5].substring(12, segments[5].length()));
-            depth = Float.parseFloat(segments[4].substring(8, segments[4].length() -3));
-            coordinates[0] = Float.parseFloat(segments[8]);
-            coordinates[1] = Float.parseFloat(segments[9]);
-
-            infoFormat = "Location:" + location +
-                    "\nDate:" + date +
-                    "\nTime: " + time +
-                    "\nCategory: " + category +
-                    "\nMagnitude: " + magnitude +
-                    "\nDepth: " + depth + " km" +
-                    "\nLatitude: " + coordinates[0] + ", Longitude: " + coordinates[1];
-
-            textFormat = "Location:" + location + "\nDate:" + date;
-        }
-    }
-
-    // Need separate thread to access the internet resource over network
-    // Other neater solutions should be adopted in later iterations.
-    private class ReadXML extends TimerTask {
-        private String url;
-
-        public ReadXML(String aurl)
-        {
-            url = aurl;
-        }
-        @Override
-        public void run()
-        {
-
-            URL url;
-            URLConnection urlConnection;
-            BufferedReader input = null;
-            String line = "";
-
-            try
-            {
-                url = new URL(this.url);
-                urlConnection = url.openConnection();
-                input = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-                while ((line = input.readLine()) != null)
-                {
-                    result += line;
-                }
-                input.close();
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-
-            try {
-                Parser parser = new Parser(MainActivity.this);
-                parser.parseXmlString(result , MainActivity.this);
-            }catch (XmlPullParserException e){
-                e.printStackTrace();
-            }catch (IOException e){
-                e.printStackTrace();
-            }
-        }
-    }
-
 }
 

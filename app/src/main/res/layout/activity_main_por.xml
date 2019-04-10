@@ -39,10 +39,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
-                android:layout_weight="1.5"
-                android:text="Sort:"
+                android:layout_weight="3"
+                android:text="Sort By:"
                 android:textColor="@color/textColor"
-                android:textSize="18sp" />
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
             <Spinner
                 android:id="@+id/sort_type"
@@ -180,6 +181,14 @@
 
     </LinearLayout>
 
+
+    <Button
+        android:id="@+id/clear_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Clear Search"
+        android:textAlignment="center" />
+
     <Button
         android:id="@+id/search_button"
         android:layout_width="match_parent"
@@ -190,11 +199,19 @@
         android:textColor="@color/textColor"
         android:textSize="22sp" />
 
+    <TextView
+        android:id="@+id/acknowledgement"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="Contains British Geological Survey materials ©NERC 2019"
+        android:textColor="@color/textColor"
+        android:textSize="10sp" />
 
     <LinearLayout
         android:id="@+id/info"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:background="@drawable/border"
         android:orientation="horizontal"
         android:visibility="gone">
@@ -218,26 +235,6 @@
             app:srcCompat="@android:drawable/btn_dialog" />
 
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/acknowledgement"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:text="Contains British Geological Survey materials ©NERC 2019"
-        android:textColor="@color/textColor"
-        android:textSize="10sp" />
-
-    <Button
-        android:id="@+id/update_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="3dp"
-        android:background="@color/colorPrimary"
-        android:text="Update Field"
-        android:textColor="@color/textColor"
-        android:textSize="22sp"
-        android:visibility="gone" />
 
     <ListView
         android:id="@+id/display"
