@@ -52,7 +52,7 @@ public class Task extends Fragment {
     // List to be passed to activity to update List View component
     public ArrayList<ListData> displayList = new ArrayList<ListData>();
     // list that holds search items
-    public ArrayList<ListData> inclusionList = new ArrayList<ListData>();
+    public ArrayList<ListData> searchList = new ArrayList<ListData>();
 
     // url source to load xml from
     private String url = "http://quakes.bgs.ac.uk/feeds/MhSeismology.xml";
@@ -61,7 +61,7 @@ public class Task extends Fragment {
     private int timeInSeconds = 120;
 
     interface Callbacks {
-        void onProgressUpdate(String[] update);
+        void onDisplayUpdate(String[] update);
     }
     private Callbacks callbacks;
 
@@ -156,14 +156,14 @@ public class Task extends Fragment {
 
         // get display list from list originally parsed from the URL and if user searching
         // then only add search items
-        inclusionList = GetListSearch(searchInput);
+        searchList = GetListSearch(searchInput);
         if (searching == false) {
             for (ListData data : originalList) {
                 displayList.add(data);
             }
         } else {
             for (ListData data : originalList) {
-                if (inclusionList.contains(data)) {
+                if (searchList.contains(data)) {
                     displayList.add(data);
                 }
             }
@@ -250,7 +250,7 @@ public class Task extends Fragment {
 
         // call to activity to change List View component
         String[] arr = temp.toArray(new String[temp.size()]);
-        callbacks.onProgressUpdate(arr);
+        callbacks.onDisplayUpdate(arr);
     }
 
     // change originally list that holds parsed data from URL and sends call to sort display List
@@ -354,7 +354,7 @@ public class Task extends Fragment {
                 int evt = p.getEventType();
 
                 String tag = "";
-                boolean read = false;
+                boolean record = false;
                 String output = "";
 
                 while (evt != XmlPullParser.END_DOCUMENT) {
@@ -363,7 +363,7 @@ public class Task extends Fragment {
                             tag = p.getName();
                             if(itemTag.equals(tag)){
                                 // if tag is specific to a useful element (i.e earthquake data) then start recording data
-                                read = true;
+                                record = true;
                             }
                             break;
 
@@ -371,7 +371,7 @@ public class Task extends Fragment {
                             tag = p.getName();
                             if(itemTag.equals(tag)){
                                 // if tag ending is useful element (i.e earthquake data) then stop recording data
-                                read = false;
+                                record = false;
                                 // add data to list and reset this output string
                                 outputs.add(output);
                                 output = "";
@@ -379,7 +379,7 @@ public class Task extends Fragment {
                             break;
 
                         case XmlPullParser.TEXT:
-                            if(read == true) {
+                            if(record == true) {
                                 if (descTag.equals(tag) || dateTag.equals(tag) || catTag.equals(tag) || latTag.equals(tag) || longTag.equals(tag)) {
                                     // if tag is equal to specific elements while recording then add data to output string
                                     // use semi-colon to separate data

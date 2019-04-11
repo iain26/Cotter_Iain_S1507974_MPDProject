@@ -6,7 +6,6 @@
 
 package me.gcu.cotter_s1507974;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.os.Build;
@@ -61,7 +60,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 
     // call from task class
     @Override
-    public void onProgressUpdate(String[] update) {
+    public void onDisplayUpdate(String[] update) {
         setDisplay(update);
     }
 
@@ -182,7 +181,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 
                 if(task.lastSearch != task.currentSearch){
                     task.lastSearch = task.currentSearch;
-                    task.inclusionList.clear();
+                    task.searchList.clear();
                     task.searching = false;
 
                     task.OrderList();
@@ -305,7 +304,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
                         break;
                 }
                 // reset search list and check that input is not nothing then run search function in fragment
-                task.inclusionList.clear();
+                task.searchList.clear();
                 if (!searchInput.matches("")) {
                     task.SearchList(searchInput);
                 } else {
@@ -329,7 +328,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
                 year_selection.setSelection(0);
                 location_search.setText("");
                 day_selection.setSelection(0);
-                task.inclusionList.clear();
+                task.searchList.clear();
                 task.searching = false;
                 task.OrderList();
                 break;
