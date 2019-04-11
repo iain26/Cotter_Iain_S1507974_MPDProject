@@ -1,4 +1,5 @@
 <resources>
+    <!-- Iain Cotter S1507974-->
     <string name="app_name">Iain_Cotter_S1507974</string>
     
     <string-array name="sortTypes">

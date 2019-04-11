@@ -9,6 +9,7 @@ import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.widget.Toast;
 
 import org.w3c.dom.Document;
@@ -70,6 +71,7 @@ public class Task extends Fragment {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         callbacks = (Callbacks) activity;
+        Log.d("Evaluation", "The fragment was attached to main activity");
     }
 
     //when fragment is created
@@ -79,6 +81,7 @@ public class Task extends Fragment {
 
         // is not destroyed on activity change
         setRetainInstance(true);
+        Log.d("Evaluation", "The fragment was created");
 
         // Start AsyncTask to load URL and parse the data
         // works on a timer to automatically update values
@@ -94,6 +97,7 @@ public class Task extends Fragment {
 
     // passed to from activity so that when activity list update occurs keep the passed in string
     public void SearchList(String input) {
+        Log.d("Evaluation", "The user requested to search for " + input);
         // boolean to check if search is being undertaken
         searching = true;
         searchInput = input;
@@ -247,6 +251,7 @@ public class Task extends Fragment {
                 temp.add("The Search Produced No Results...");
             }
         }
+        Log.d("Evaluation", "The size of the currently displayed list is " + displayList.size());
 
         // call to activity to change List View component
         String[] arr = temp.toArray(new String[temp.size()]);
@@ -284,13 +289,18 @@ public class Task extends Fragment {
                     // document is then read to string and placed on single line for parsing
                     String result = DocumentToString(doc);
                     result = result.replaceAll("\n", "");
+                    Log.d("Evaluation", "Data was read");
+
 
                     // the string data is passed to parser and returns list with strings
                     ParseXml parseXml = new ParseXml();
                     list = parseXml.getString(result);
+                    Log.d("Evaluation", "The data was parsed and found " + list.size() + " items");
+
 
                     // event triggered to call onProgressUpdate
                     publishProgress("");
+                    Log.d("Evaluation", "Read and Parsed data now waits to reload data");
                     // stops the thread and subsequently while loop for the amount of seconds specified
                     Thread.sleep( params[0]*1000 );
 

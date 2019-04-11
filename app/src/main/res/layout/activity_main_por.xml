@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Iain Cotter S1507974-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -94,7 +95,8 @@
 
     </LinearLayout>
 
-    <LinearLayout
+    <View
+        android:id="@+id/partition"
         android:layout_width="fill_parent"
         android:layout_height="5dp"
         android:background="@drawable/border"
@@ -102,8 +104,8 @@
         android:focusableInTouchMode="true"
         android:orientation="vertical">
 
+    </View>
 
-    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/Search_Bar"

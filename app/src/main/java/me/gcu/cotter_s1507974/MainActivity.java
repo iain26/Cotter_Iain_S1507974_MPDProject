@@ -14,6 +14,7 @@ import android.os.Vibrator;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.InputMethodManager;
@@ -244,8 +245,10 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
         // change to orientation will destroy current activity
         // depending on the orientation currently determine which xml layout to load
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+            Log.d("Evaluation", "Sets The layout to be portrait");
             setContentView(R.layout.activity_main_por);
         } else {
+            Log.d("Evaluation", "Sets The layout to be landscape");
             setContentView(R.layout.activity_main_land);
         }
 
@@ -254,6 +257,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
         FragmentManager manager = getSupportFragmentManager();
         task = (Task)manager.findFragmentByTag(taskTag);
         if(task == null){
+            Log.d("Evaluation", "Creates the Fragment");
             task = new Task();
             manager.beginTransaction().add(task, taskTag).commit();
         }
@@ -346,6 +350,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
         }
         MainActivity.this.runOnUiThread(new Runnable() {
             public void run() {
+                Log.d("Evaluation", "Sets The List View");
                 display.setAdapter(adapter);
             }
         });
