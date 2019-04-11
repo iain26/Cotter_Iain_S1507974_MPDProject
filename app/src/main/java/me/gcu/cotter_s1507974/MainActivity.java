@@ -6,6 +6,7 @@
 
 package me.gcu.cotter_s1507974;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.os.Build;
@@ -65,7 +66,8 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
     }
 
     // soft keyboard pops up when text edited rehide it
-    public void hideKeyboard(MainActivity activity) {
+    public void hideKeyboard() {
+        MainActivity activity = this;
         InputMethodManager inputMethodManager = (InputMethodManager) activity.getSystemService(MainActivity.INPUT_METHOD_SERVICE);
         inputMethodManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
     }
@@ -113,6 +115,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
         sort_type.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                hideKeyboard();
                 switch (sort_type.getSelectedItem().toString()) {
                     case "Date":
                         task.sort = Task.typesToSort.DATE;
@@ -156,6 +159,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
         search_by.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                hideKeyboard();
 
                 day_search.setVisibility(View.GONE);
                 date_search.setVisibility(View.GONE);
@@ -214,11 +218,12 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
         display.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                hideKeyboard();
                 if (task.displayList.size() > 0) {
                     // vibrates on item select
                     Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        vibrator.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
+                        vibrator.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE));
                     }
                     else{
                         vibrator.vibrate(50);
@@ -260,11 +265,11 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 
     // when buttons or switch is pressed
     public void onClick(View aview) {
-        hideKeyboard(this);
+        hideKeyboard();
 
         Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
+            vibrator.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE));
         }
         else{
             vibrator.vibrate(50);
@@ -333,7 +338,13 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 
     // Updates the List View component
     public void setDisplay(String[] newDisplay) {
-        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_selectable_list_item, newDisplay);
+        //checks if data has been implemented
+        if(task.searching == false && task.displayList.size() == 0){
+            String[] noData = {"No Data, Check Internet Connection..."};
+            adapter = new ArrayAdapter<String>(this, android.R.layout.simple_selectable_list_item, noData);
+        }else {
+            adapter = new ArrayAdapter<String>(this, android.R.layout.simple_selectable_list_item, newDisplay);
+        }
         MainActivity.this.runOnUiThread(new Runnable() {
             public void run() {
                 display.setAdapter(adapter);

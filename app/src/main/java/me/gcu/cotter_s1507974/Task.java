@@ -176,7 +176,7 @@ public class Task extends Fragment {
                 Collections.sort(displayList, new Comparator<ListData>() {
                     @Override
                     public int compare(ListData o1, ListData o2) {
-                        return o1.time.compareTo(o2.time);
+                        return o2.time.compareTo(o1.time);
                     }
                 });
                 break;
@@ -184,7 +184,7 @@ public class Task extends Fragment {
                 Collections.sort(displayList, new Comparator<ListData>() {
                     @Override
                     public int compare(ListData o1, ListData o2) {
-                        return o1.location.compareTo(o2.location);
+                        return o2.location.compareTo(o1.location);
                     }
                 });
                 break;
@@ -192,7 +192,7 @@ public class Task extends Fragment {
                 Collections.sort(displayList, new Comparator<ListData>() {
                     @Override
                     public int compare(ListData o1, ListData o2) {
-                        return o1.category.compareTo(o2.category);
+                        return o2.category.compareTo(o1.category);
                     }
                 });
                 break;
@@ -200,7 +200,7 @@ public class Task extends Fragment {
                 Collections.sort(displayList, new Comparator<ListData>() {
                     @Override
                     public int compare(ListData o1, ListData o2) {
-                        return Float.compare(o1.magnitude, o2.magnitude);
+                        return Float.compare(o2.magnitude, o1.magnitude);
                     }
                 });
                 break;
@@ -208,7 +208,7 @@ public class Task extends Fragment {
                 Collections.sort(displayList, new Comparator<ListData>() {
                     @Override
                     public int compare(ListData o1, ListData o2) {
-                        return Float.compare(o1.depth, o2.depth);
+                        return Float.compare(o2.depth, o1.depth);
                     }
                 });
                 break;
@@ -289,7 +289,7 @@ public class Task extends Fragment {
                     ParseXml parseXml = new ParseXml();
                     list = parseXml.getString(result);
 
-                    // event triggered to call onProgreesUpdate
+                    // event triggered to call onProgressUpdate
                     publishProgress("");
                     // stops the thread and subsequently while loop for the amount of seconds specified
                     Thread.sleep( params[0]*1000 );
